@@ -126,6 +126,61 @@ group by dp.dep
 order by dp_pop desc 
 limit 1
 
+-- 30. Donnez la table des régions en y ajoutant le pourcentage entier de la 
+-- population de la région habitant dans le chef-lieu de région.
+select r.*, (100 * (chl_dm.pop24 + chl_dm.pop2564 + chl_dm.pop65))
+	/(sum(dm.pop24 + dm.pop2564 + dm.pop65)) as pourcentage
+from communes c
+join demographie dm on  dm.com = c.com
+join departements dp on dp.dep = c.dep
+join regions r on       r.reg  = dp.reg 
+join communes chl on    chl.com = r.cheflieu
+join demographie chl_dm on chl_dm.com = chl.com
+group by r.reg
+
+-- 31. Donner le nombre de lycées par département. On donnera 
+-- le nom et le nombre de lycées de chaque département, 
+-- ordonnés par nombre de lycées décroissant puis par nom de 
+-- département croissant pour l’ordre lexicographique.
+select dp.nom, sum(e.lycees) as nombre_lycees
+from communes c
+join departements dp on dp.dep = c.dep
+join equipements e   on e.com = c.com
+group by dp.dep
+order by nombre_lycees desc, dp.nom
+
+-- 32. Quels sont les départements dans lesquels toutes 
+-- les communes sont dotées d’au moins une pharmacie ?
+select dp.*
+from communes c
+join departements dp on dp.dep = c.dep
+join equipements e   on e.com = c.com
+group by dp.dep
+having e.pharmacies > 0 
+/*
+	13	93	13055	Bouches-du-Rhône
+	15	84	15014	Cantal
+	23	75	23096	Creuse
+	2A	94	2A004	Corse-du-Sud
+	...
+	(39 total entries)
+*/
+
+-- 33. Quel est le nom de la région ayant le plus 
+-- de poissonneries par habitant de plus de 65 ans ?
+select r.nom, sum(e.poissonneries) as total_poissonneries, 
+	sum(dm.pop65) as population_plus_de_65_ans, 
+	1.0 * sum(e.poissonneries) / sum(dm.pop65) as poissonneries_par_habitant 
+from communes c
+join demographie dm on  dm.com = c.com
+join departements dp on dp.dep = c.dep
+join regions r on       r.reg  = dp.reg 
+join equipements e on   e.com  = c.com
+group by r.reg
+having sum(e.poissonneries) > 0
+order by 1.0 * sum(e.poissonneries) / sum(dm.pop65) desc
+limit 1
+
 
 
 
